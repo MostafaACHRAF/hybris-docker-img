@@ -1,0 +1,15 @@
+version: '3'
+  services:
+    mysql:
+      build: ./mysql-img
+
+    hybris:
+      build: ./hybris-img
+      ports:
+        - "9002:9002"
+        - "9001:9001"
+        - "8983:8983"
+      volumes:
+        - /src/hybris:/home/hybris/Documents/seb
+      depends_on:
+        - mysql

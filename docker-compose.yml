@@ -1,15 +1,36 @@
-version: '3'
-  services:
-    mysql:
-      build: ./mysql-img
+version: '3.7'
 
-    hybris:
-      build: ./hybris-img
-      ports:
-        - "9002:9002"
-        - "9001:9001"
-        - "8983:8983"
-      volumes:
-        - /src/hybris:/home/hybris/Documents/seb
-      depends_on:
-        - mysql
+
+services:
+  mysql:
+    build:
+      context: ./mysql-img
+      dockerfile: Dockerfile
+    configs:
+      - mysql_config
+
+  hybris:
+    build:
+      context: ./hybris-img
+      dockerfile: Dockerfile
+      args:
+        GIT_REPO_URL: https://${GIT_USER}:${GIT_PASSWORD}@github.com/projectID
+        HYBRIS_DOWNLOAD_URL: http://nexus.xyz:8080/repository/releases/hybris-commerce-suite-${HYBRIS_VERSION}.zip
+       
+    ports:
+      - "9002:9002"
+      - "9001:9001"
+      - "8983:8983"
+    volumes:
+      - /src/hybris:/home/hybris
+    depends_on:
+      - mysql
+    configs:
+      - hybris_config
+
+
+configs:
+  hybris_config:
+    file: ./hybris-img/config.properties
+  mysql_config:
+    file: ./mysql-img/mysql.ini

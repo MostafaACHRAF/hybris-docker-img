@@ -14,12 +14,13 @@ RUN pacman -S --noconfirm curl
 # install git
 RUN pacman -S --noconfirm git
 
-ARG HYBRIS_VERSION=6.7.0.10
-ARG GIT_REPO=https://gitlab.rabat.sqli.com/SEB-and-Share/SEB0002.git
+ARG GIT_REPO_URL
+ARG HYBRIS_DOWNLOAD_URL
+ARG DEBUG=1
 
-# download hybris ${HYBRIS_VERSION}
+# download hybris commerce suite
 WORKDIR /src
-#RUN curl http://nexus.rabat.sqli.com:8080/repository/releases/com/hybris/hybris-commerce-suite/${HYBRIS_VERSION}/hybris-commerce-suite-${HYBRIS_VERSION}.zip
+#RUN curl -v -u "${HYBRIS_DOWNLOAD_USER}:${HYBRIS_DOWNLOAD_PASSWORD}"  ${HYBRIS_DOWNLOAD_URL}
 RUN touch hybris.txt
 
 # unzip hybris.zip
@@ -28,12 +29,17 @@ RUN echo "unzip hybris.txt"
 
 # clone git project from gitlab in 'cutom' folder
 WORKDIR /src/hybris/bin/custom
-RUN git clone ${GIT_REPO}
+RUN git clone --progress --verbose ${GIT_REPO_URL}
+
+# reset the value of credentials environment variables
+RUN GIT_USER= \
+    GIT_PASSWORD= \
+    HYBRIS_DOWNLOAD_USER= \
+    HYBRIS_DOWNLOAD_PASSWORD=
 
 #  copy and run the entrypoint
-COPY entrypoint.sh /entrypoint.sh
-WORKDIR /src/hybris/bin/platform
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "init" ]
+COPY hybris-entrypoint.sh /hybris-entrypoint.sh
+RUN chmod +x /hybris-entrypoint.sh
+ENTRYPOINT [ "/hybris-entrypoint.sh","init"]
 
 #  start localhost:9002/backoffice on the default web browser
